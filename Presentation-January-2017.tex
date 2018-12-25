@@ -1,0 +1,452 @@
+\documentclass{beamer}
+%
+% Choose how your presentation looks.
+%
+% For more themes, color themes and font themes, see:
+% http://deic.uab.es/~iblanes/beamer_gallery/index_by_theme.html
+%
+\mode<presentation>
+{
+  \usetheme{Dresden}      % or try Darmstadt, Madrid, Warsaw, ...
+  \usecolortheme{orchid} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+} 
+
+
+\newcommand{\tn}{\textnormal}
+\newcommand{\Ehigh}{\mathcal{E}^\tn{high}_i}
+\newcommand{\Emed}{\mathcal{E}^\tn{med}_i}
+\newcommand{\NN}{\mathcal{N}}
+
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{mathpazo}
+\usepackage{graphicx,tabularx,epsfig}
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{subfig}
+\usepackage{booktabs}
+
+\definecolor{adired}{rgb}{0.83, 0.00, 0.00}
+\definecolor{adiblue}{rgb}{0.19, 0.361, 0.769}
+\definecolor{adigreen}{rgb}{0.012, 0.561, 0.180}
+
+% *** Presentation to internal seminar day (2-Jan-2017) ***
+
+\title[Making the Power Grid More Robust]{Making the Power Grid More Robust}
+\author[Sarid, Tzur]{Adi Sarid, Michal Tzur}
+\institute[Tel-Aviv University]{\normalsize Department of Industrial Engineering, Tel-Aviv University, Israel}
+\date{Seminar\\January 2nd, 2018}
+
+\titlegraphic{\includegraphics[width=2.5cm]{Aux_files/Tel_Aviv_university_logo.png}}
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\addtobeamertemplate{navigation symbols}{}{%
+    \usebeamerfont{footline}%
+    \usebeamercolor[fg]{footline}%
+    \hspace{1em}%
+    \insertframenumber/\inserttotalframenumber
+}
+
+\section{Introduction}
+\subsection{Background}
+\begin{frame}
+\frametitle{Why Should We Care About Power Grid ``Robustness''}
+\begin{itemize}
+	\item Each year, weather related outages in the US incur an average cost of \$18-\$33 billion [1]
+	\item The grid is also vulnerable to a variety of threats other than weather (cyber, terror, natural disasters, etc.)
+	\item The grid is a \textbf{critical infrastructure}
+	\item Disruptions cannot be totally avoided, but they can be mitigated
+	\begin{itemize}
+		\item Infrastructure \textbf{design} (e.g., capacity upgrades, micro-grids, DG)
+		\item \textbf{Realtime} mitigation (e.g., islanding, restoration)
+	\end{itemize}
+  \item How can we design more robust power grids?
+\end{itemize}
+\vspace{0.2in}
+\tiny [1] President's Council of Economic Advisers and the U.S. Department of Energy, Economic benefits of increasing electric grid resilience to weather outages, 2013.
+\end{frame}
+
+\begin{frame}
+\frametitle{What is Robustness?}
+\begin{block}{Robustness \small[2]}
+\begin{itemize}
+	\item Robustness is related to \emph{how much} damage occurs as a consequence of an unexpected perturbation. \pause 
+    \item The greater the damage, the system is less robust. For example:
+	\begin{itemize}
+		\item Expected loss of load (electricity)
+		\item Probability for loss of load (of a certain amount)
+	\end{itemize} %\pause
+	%\item Resilience measures \emph{how quickly} the network can retrieve from such damage. \pause For example:
+	%\begin{itemize}
+		%\item The expected time it takes to restore electricity supply
+	%\end{itemize}
+\end{itemize}
+\end{block}
+\vspace{0.2in}
+\tiny [2] Cuadra \emph{et al.}, A critical review of robustness in power grids using complex networks concepts. \emph{Energies}, 2015.
+\end{frame}
+
+%\subsection{Related Work}
+%\begin{frame}
+%\frametitle{Related Work -- TBD}
+%\begin{itemize}
+	%\item Measure definitions (robustness/resilience)
+	%\item Design decisions
+	%\item Grid restoration
+	%\item Models of cascades
+	%\item Flow models (AV vs. DC)
+	%\item Solution methods
+	%\begin{itemize}
+		%\item Heuristics
+		%\item Linear programming
+	%\end{itemize}
+%\end{itemize}
+%\end{frame}
+
+\section{Power Flow}
+\subsection{Layers of the grid and the DC load flow model}
+\begin{frame}
+\frametitle{Layers of the Grid}
+\framesubtitle{Generation, transmission, and distribution}
+\begin{figure}[h]
+		\includegraphics[width=0.5\textwidth]{Aux_files/figure_1_Electricity_grid_simple_North_America.png}
+	\label{fig:figure_1_Electricity_grid_simple_North_America}
+\end{figure}
+\pause
+\footnotesize Eventually the layers are arranged into a network. The following illustrates the generation and transmission layers:
+\vspace{-0.1in}
+\begin{figure}
+		%\includegraphics[width=.35\textwidth]{Aux_files/figure_2_alternative_example_ieee123_mod.png}
+		\includegraphics[width=1\textwidth]{Aux_files/figure_2_example_grid.png}
+	\label{fig:figure_2_example_grid}
+\end{figure}
+\end{frame}
+
+% \begin{frame}
+% \frametitle{The Flow Equations}\footnotesize
+% Two popular models of flow:
+% \begin{itemize}
+% 	\item AC load flow (alternating current) -- Non linear, used for realtime problems (sometimes in planning)
+% 	\item \textbf{DC load flow (direct current)} -- Linear, used as an approximation to AC in infrastructure design problems [3]
+% \end{itemize}\pause
+% The DC load flow equations:
+% \begin{align*}
+% 	\sum_j{f_{ij}} = d_i & \quad\forall i\in\mathcal{N}, \{i,j\}\in\mathcal{L}\\
+% 	\theta_i-\theta_j-x_{ij}f_{ij}=0 & \quad\forall \{i,j\}\in\mathcal{L}
+% \end{align*}\pause
+
+% \tiny [3] Bienstock, Daniel and Mattia, Sara, Using mixed-integer programming to solve power grid blackout problems, \emph{Discrete Optimization}, 2007.
+% \end{frame}
+
+\begin{frame}
+\frametitle{The Flow Equations}\footnotesize
+The DC load flow equations:
+\begin{align*}
+	\sum_j{f_{ij}} = d_i & \quad\forall i\in\mathcal{N}, \{i,j\}\in\mathcal{L}\\
+	\theta_i-\theta_j-x_{ij}f_{ij}=0 & \quad\forall \{i,j\}\in\mathcal{L}
+\end{align*}
+Flow preservation + Active power (phase angle constraints), where:
+\begin{itemize}
+	\item Decision variables: $f_{ij}=$ flow in $\{i,j\}$; \ $\theta_i=$ phase angle at $i$
+	\item Parameters: $x_{ij}=$ reactance of $\{i,j\}$; \ $d_i=$ demand (supply) at $i$
+\end{itemize}
+
+\begin{block}{\small Lemma 1. Flow solution uniqueness}
+If the flow preservation and active power constraints have a solution, then this solution is unique in the $f_{ij}$ variables.
+\end{block}
+Proof sketch. For trees, the flow can be determined incrementally, by traversing the nodes. For a graph with cycles it requires a bit more work but still holds (can be proved by contradiction).
+\end{frame}
+
+\subsection{Cascade Failure Mechanism}
+\begin{frame}
+\frametitle{What is a ``Cascading Failure''?}\small
+The DC load flow model does not include line capacities, however, a transmission line cannot conduct infinite power. Hence, the power grid is vulnerable to a failure process, as follows:
+\begin{enumerate}
+  \item<1->An external factor (e.g, extreme weather) causes a certain failure
+	\item<2->The current is immediately rerouted (by the physical laws of flow)
+	\item<3->If the current of a transmission line then exceeds a threshold, the line overheats and breaks
+	\item<4->When a line breaks, the current is again rerouted (by physical laws)
+	\item<5->This process continues on until no line exceeds its capacity threshold
+\end{enumerate}
+\begin{itemize}
+	\item<6->The cascade process is usually described via a simulation model [3,4]
+\end{itemize}
+
+\uncover<6->{
+\tiny [3] Bienstock, Daniel and Mattia, Sara, Using mixed-integer programming to solve power grid blackout problems, \emph{Discrete Optimization}, 2007.\\\tiny[4] Soltan \emph{et. al.}, Cascading failures in power grids: analysis and algorithms, \emph{Proceedings of the 5th international conference on Future energy systems}, 2014.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example of a Cascade}
+\begin{itemize}
+	\item Node $i$ with demand $d_i$
+	\item Edge $\{G,i\}$ with capacity $d_i+\epsilon$
+	\item Edges $\{1,2\}, \{2,3\}$ with ``infinite'' (very large) capacity
+	%\item Reactance $(d_3+\epsilon)x_{G3}=\epsilon x_{23} + (d_1+d_2-\epsilon)x_{G2}$
+\end{itemize}
+%\vspace{-0.2in}
+%\begin{figure}
+	%\centering
+	  %\setcounter{subfigure}{0}% Reset subfigure counter to avoide beamer \pause counter clash
+		%\subfloat[Nominal]{\includegraphics[width=0.23\textwidth]{Aux_files/figure_3_a_cascade_example.png}}
+		%\pause
+		%%\hspace{0.1in}
+		%\subfloat[Init fail]{\includegraphics[width=0.23\textwidth]{Aux_files/figure_3_b_cascade_example.png}}%\hspace{0.1in}
+		%\pause
+		%\subfloat[Cascade \#1]{\includegraphics[width=0.23\textwidth]{Aux_files/figure_3_c_cascade_example.png}}%\hspace{0.1in}
+		%\pause
+		%\subfloat[Cascade \#2]{\includegraphics[width=0.23\textwidth]{Aux_files/figure_3_d_cascade_example.png}}
+%\end{figure}
+
+\begin{figure}
+\includegraphics[width=1\textwidth]{Aux_files/figure_3_full.pdf}
+\end{figure}
+
+\begin{itemize}
+	\pause\item This grid completely fails, no consumer is supplied
+	\pause\item If edge $\{1,2\}$ hadn't existed, consumers $2,3$ would have remained with power supply
+\end{itemize}
+
+\pause ``\textbf{Braess's paradox} in power grids''...
+\end{frame}
+
+% should include a toy example
+% should include conditions for one casecade depth, N-cascade depth
+
+\section{Design for Robustness}
+% I would not discuss a characterization of 1-cascade depth due to lack of time
+%\subsection{Na\"{i}ve Characterization of 1-cascade depth}
+% What do we measure?
+\subsection{Single Cascade}\footnotesize
+\begin{frame}
+\frametitle{Design for Robustness}
+Design a power grid with \textbf{minimum loss of load} subject to:
+\begin{itemize}
+	\item Failure scenarios (scenarios which describe failures due to external factors)
+	\item Considering cascade outcomes due to initial failures
+	\item Using the DC load flow model
+	\item Limited budget
+\end{itemize}\pause
+Decision variables:
+\begin{itemize}
+	\item Upgrade capacity of transmission lines (edges)
+	\item Establish new transmission lines
+	\item Establish units with backup capacity at consumer nodes (DG or battery)
+	\item Generation and flow variables
+\end{itemize}\pause
+Start simple -- assume up to a single cascade:
+\begin{enumerate}
+  \setcounter{enumi}{-1}
+	\item Initial failure;
+	\item Flow after failure, which causes a cascade; 
+	\item After cascade flow rearranges again and no further cascades
+\end{enumerate}
+\end{frame}
+
+% a MILP for one cascade depth
+\begin{frame}
+\frametitle{Design for Robustness -- 1-cascade depth}
+\framesubtitle{What happens if only a single cascade may occur?}
+\vspace{0.1in}
+Minimum expected loss of load:
+\begin{align*}
+\sum_{s\in\mathcal{S}}{p_s}\sum_{i\in\mathcal{N}\setminus\{G\}}{\left(d_i-w_i^{2,s}\right)}	
+\end{align*}
+\footnotesize
+Variable domain:
+\begin{align*}
+	 \forall i,j\in\mathcal{N}, t\in\{1,2\}, s\in\mathcal{S}:\label{variable_domain}\\
+	 g_i^s, w_i^{t,s}, c_{ij}^l, c_i^g\geq0\notag\\
+	 F_{ij}^s, Z_i\in\{0,1\}\notag\\
+	 \forall (i,j)\in\mathcal{L}^e:\\
+	 X_{ij} \in\{0,1\}\notag
+\end{align*}
+Investment cost constraint (budget):
+\begin{align*}
+	 \sum_{(i,j)\in\mathcal{L}}{h_{ij}c_{ij}^l} + \sum_{i\in\mathcal{N}}\left(h_ic_i^g + H_iZ_i\right) + \sum_{(i,j)\in\mathcal{L}^e}{H_{ij}X_{ij}} \leq C
+\end{align*}
+\end{frame}
+\begin{frame}
+\frametitle{Design for Robustness -- 1-cascade depth -- cont.}\footnotesize
+Conservation of flow (the DC load flow model, for $t=1$):
+\begin{align*}
+   \sum_{j\in\mathcal{N}|(j,i)\in\mathcal{L}\backslash\mathcal{F}^s}f_{ji}^{1,s}-\sum_{j\in\mathcal{N}|(i,j)\in\mathcal{L}\backslash\mathcal{F}^s}f_{ij}^{1,s} = d_i & \quad \forall i\in\mathcal{N}, s\in\mathcal{S}\\
+	 \theta_i^{1,s}-\theta_j^{1,s}-x_{ij}f_{ij}^{1,s}=0 & \quad \forall (i,j)\in\mathcal{L}^0, (i,j)\notin\mathcal{F}^s, s\in\mathcal{S}\\
+	 \color{red}{\theta_i^{1,s}-\theta_j^{1,s}-x_{ij}f_{ij}^{1,s}\leq M (1-X_{ij})} & \quad \forall (i,j)\in\mathcal{L}^e\backslash\mathcal{F}^s, s\in\mathcal{S}\\
+	 \theta_i^{1,s}-\theta_j^{1,s}-x_{ij}f_{ij}^{1,s}\geq -M (1-X_{ij}) & \quad \forall (i,j)\in\mathcal{L}^e\backslash\mathcal{F}^s,  s\in\mathcal{S}
+\end{align*}
+Cascade effects which occur at $t=1$:
+\begin{align*}
+	\color{red}{f_{ij}^{1,s} \leq c_{ij}^0+c_{ij}^l + M\cdot F_{ij}^s} & \qquad \forall (i,j)\in\mathcal{L}\backslash\mathcal{F}^s, s\in\mathcal{S}\\
+	 -f_{ij}^{1,s} \leq c_{ij}^0+c_{ij}^l + M\cdot F_{ij}^s & \qquad \forall (i,j)\in\mathcal{L}\backslash\mathcal{F}^s, s\in\mathcal{S}
+\end{align*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Design for Robustness -- 1-cascade depth -- cont.}\footnotesize
+Transmission capacity:
+\begin{align*}
+	 f_{ij}^{t,s} \leq M\cdot X_{ij} & \qquad \forall t\in\mathcal{T}, s\in\mathcal{S}, (i,j)\in\mathcal{L}^e\\
+	 f_{ij}^{t,s} \geq -M\cdot X_{ij} & \qquad \forall t\in\mathcal{T}, s\in\mathcal{S}, (i,j)\in\mathcal{L}^e
+\end{align*}
+\begin{align*}
+	 \color{red}{f_{ij}^{2,s} \leq M\cdot(1-F_{ij}^s)} & \qquad \forall (i,j)\in\mathcal{L}\backslash\mathcal{F}^s, s\in\mathcal{S}\\
+	 f_{ij}^{2,s} \geq -M\cdot(1-F_{ij}^s) & \qquad \forall (i,j)\in\mathcal{L}\backslash\mathcal{F}^s, s\in\mathcal{S}
+\end{align*}
+Limit supply (do not exceed demand at $t=2$):
+\begin{align*}
+   \sum_{i\in\mathcal{N}}w_i^s = \sum_{i\in\mathcal{N}}g_i^s & \qquad \forall s\in\mathcal{S}\\
+   w_i^{s} \leq d_i & \qquad \forall i\in\mathcal{N}\backslash\{G\}
+\end{align*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Design for Robustness -- 1-cascade depth -- cont.}\footnotesize
+Generation capacity:
+\begin{align*}
+	 g_i^{s} \leq c_i^g & \qquad \forall i\in\mathcal{N}, s\in\mathcal{S}\\
+	 g_i^{s} \leq M\cdot Z_i & \qquad \quad\forall i\in\mathcal{N}
+\end{align*}
+Conservation of flow after cascade ($t=2$):
+\begin{align*}
+	 \sum_{(j,i)\in\mathcal{L}\backslash\mathcal{F}^s}f_{ji}^{2,s}-\sum_{(i,j)\in\mathcal{L}\backslash\mathcal{F}^s}f_{ij}^{2,s} + g_i^s - w_i^s = 0 & \qquad \forall i  \in\mathcal{N}, s\in\mathcal{S}\\
+	 \theta_i^{2,s}-\theta_j^{2,s}-x_{ij}f_{ij}^{2,s}\leq M F_{ij}^s & \qquad \forall (i,j)\in\mathcal{L}^0\backslash\mathcal{F}^s, s\in\mathcal{S}\\
+	 \theta_i^{2,s}-\theta_j^{2,s}-x_{ij}f_{ij}^{2,s}\geq -M F_{ij}^s & \qquad \forall (i,j)\in\mathcal{L}^0\backslash\mathcal{F}^s, s\in\mathcal{S}\\
+	\theta_i^{2,s}-\theta_j^{2,s}-x_{ij}f_{ij}^{2,s}\leq M (1-X_{ij}) + M F_{ij}^s & \quad \forall (i,j)\in\mathcal{L}^e\backslash\mathcal{F}^s, s\in\mathcal{S}\\
+	 \theta_i^{2,s}-\theta_j^{2,s}-x_{ij}f_{ij}^{2,s}\geq -M (1-X_{ij}) - M F_{ij}^s & \quad \forall (i,j)\in\mathcal{L}^e\backslash\mathcal{F}^s, s\in\mathcal{S}	
+\end{align*}
+\end{frame}
+
+\subsection{Any number of cascades}
+\begin{frame}
+\frametitle{Consistency and Limitations}
+\begin{block}{Theorem 1. Consistency}
+The optimal solution is ``physically consistent'', i.e.:
+\begin{enumerate}
+\item The flow at $t=1$ ($f_{ij}^{1,s}$) is equal to the DC load flow solution for a power grid at step $t=1$;
+\item The objective value (unsatisfied demand at step $t=2$) is equal to the unsatisfied demand which a DC load flow model yields (after the cascade)
+\end{enumerate}
+\end{block}\pause
+What happens when we cannot guarantee a single cascade depth? 
+\begin{itemize}
+	\item Approach fails when trying a ``straightforward'' generalization
+	\item The additional degrees of freedom (of generation variables) gives a solution which is not ``physically consistent''
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Cascade Trees -- A Possible Solution?}
+If we could ``preprocess'' the solution tree and resulting cascades at each node, then we can essentially enumerate all possible failure combinations.
+\begin{figure}[h]
+	\centering
+		\includegraphics[width=0.30\textwidth]{Aux_files/figure_4_three-step-cascade-tree.png}
+	\label{fig:figure_4_three-step-cascade-tree}
+\end{figure}
+Unfortunately, such preprocessing is too complex (too many options), but this can be generated \textbf{``on-the-fly''} using a \textbf{cutting plane} ``lazy'' constraints framework.
+\end{frame}
+
+\begin{frame}
+\frametitle{Algorithm for an n-Cascade Depth Design Problem}
+\small
+%\only<2>{Solve an infrastructure design problem -- no casacde constraints}
+%\only<3>{Check the the failures in solution vs. cascade simulation}
+%\only<4>{If there are inconsistencies add them as new constraints and solve again}
+\begin{figure}[h]
+	\centering
+		\includegraphics<1>[width=1\textwidth]{Aux_files/figure_5a_PGRO2_explained.pdf}
+		\includegraphics<2>[width=1\textwidth]{Aux_files/figure_5b_PGRO2_explained.pdf}
+		\includegraphics<3>[width=1\textwidth]{Aux_files/figure_5c_PGRO2_explained.pdf}
+		\includegraphics<4->[width=1\textwidth]{Aux_files/figure_5d_PGRO2_explained.pdf}
+	\label{fig:figure_5_PGRO2_algorithm}
+\end{figure}
+\begin{itemize}\footnotesize
+	\item<5->Add-on: ``branching priorities'' -- save the failure variables ($F$) for last!
+	\item<6->Heuristic callback: update incumbent solution during simulation step
+\end{itemize}
+\end{frame}
+
+% cascade tree illustration for more complex cases
+% the lazy constraints algorithm
+
+\section{Preliminary Results}
+\subsection{}
+\begin{frame}
+\frametitle{Preliminary results}
+%\framesubtitle{Can this method converge in a resonable time frame? Depends.}
+\footnotesize
+Simple experiment
+\begin{itemize}
+	\item IEEE-30 nodes test feeder (single generator with 29 consumers)
+	\item Total of 56 edges (41 existing for upgrade + 15 new for establishment)
+	\item Total of 5 scenarios: 280 scenario failure variables (5*56)
+\end{itemize}
+\begin{table}
+\centering
+\begin{tabular}{cccc}\toprule
+Capacity & DVar & Optimality & \\
+parameter & priorities & gap & Time\\ \toprule
+5.0 & - & 7.93\% & time limit\\
+5.0 & V & 6.82\% & time limit\\
+7.5 & V & Optimal & 19.1 s\\
+10.0 & V & Optimal & 5.5 s\\\bottomrule
+\end{tabular}
+\end{table}
+%\begin{figure}[h]
+%	\centering
+%		\includegraphics[width=1\textwidth]{Aux_files/figure_6_opt_gap.pdf}
+%	\label{fig:figure_6_opt_gap}
+%\end{figure}
+\begin{itemize}
+	\item The real optimality gap may be much smaller $\rightarrow$ need to develop an upper bound separately
+\end{itemize}
+\end{frame}
+
+%\begin{frame}
+%\frametitle{Preliminary results}
+%\framesubtitle{Can this method converge in a resonable time frame? Depends.}\footnotesize
+%
+%In the ``hard'' cases, a significant portion of the time is spent on simulations, not on branching\\
+%
+%\vspace{0.1in}
+%
+%\begin{figure}[h]
+	%\centering
+		%\includegraphics[width=1\textwidth]{Aux_files/figure_7_time_simulating.pdf}
+	%\label{fig:figure_7_time_sim}
+%\end{figure}
+%\end{frame}
+
+% Mostly talk about tractability - can this problem be solved? how does it depend on parametrization.
+
+\section{Conclusions}
+\subsection{Conclusions}
+\begin{frame}
+\frametitle{Conclusions}
+\framesubtitle{This method still needs some ``pondering''}
+\begin{itemize}
+  \item A new method to combine investment decisions with the cascade phenomena
+	\item It takes long to prove/close the optimality gap
+	\item Needs an upper bound generation strategy
+	\item Failure variables ($F$) introduce a challenge (more scenarios increase the complexity significantly)
+	\item Customize the branching process further
+\end{itemize}
+\end{frame}
+
+\subsection{Get in Touch}
+\begin{frame}
+\LARGE Thank you\\
+\vspace{2.5cm}
+\normalsize
+Adi Sarid\\
+adisarid@gmail.com
+\end{frame}
+\end{document}
