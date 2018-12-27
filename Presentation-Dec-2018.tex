@@ -35,12 +35,12 @@
 \definecolor{adiblue}{rgb}{0.19, 0.361, 0.769}
 \definecolor{adigreen}{rgb}{0.012, 0.561, 0.180}
 
-% *** Presentation to internal seminar day (2-Jan-2017) ***
+% *** Presentation to seminar (2018+) ***
 
-\title[Making the Power Grid More Robust]{Making the Power Grid More Robust}
+\title[Robustness and Equity in Power Grid Planning]{Robustness and Equity in Power Grid Expansion Planning}
 \author[Sarid, Tzur]{Adi Sarid, Michal Tzur}
 \institute[Tel-Aviv University]{\normalsize Department of Industrial Engineering, Tel-Aviv University, Israel}
-\date{Seminar\\January 2nd, 2018}
+\date{December 31st, 2018}
 
 \titlegraphic{\includegraphics[width=2.5cm]{Aux_files/Tel_Aviv_university_logo.png}}
 \begin{document}
@@ -340,11 +340,12 @@ What happens when we cannot guarantee a single cascade depth?
 \begin{itemize}
 	\item Approach fails when trying a ``straightforward'' generalization
 	\item The additional degrees of freedom (of generation variables) gives a solution which is not ``physically consistent''
+	\item Can be used with transmission line capacities as an approximation -- but how good would that approximation be?
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Cascade Trees -- A Possible Solution?}
+\frametitle{Second Approach ``Cascade Trees''}
 If we could ``preprocess'' the solution tree and resulting cascades at each node, then we can essentially enumerate all possible failure combinations.
 \begin{figure}[h]
 	\centering
@@ -374,58 +375,49 @@ Unfortunately, such preprocessing is too complex (too many options), but this ca
 \end{itemize}
 \end{frame}
 
+\subsubsection{Large Neighborhood Search}
+\begin{frame}
+\frametitle{Third Approach: a Large Neighborhood Search Heuristic (LNS)}
+This meta-heuristic is based on ``destroying'' and ``rebuilding'' solutions. How does it work? (Pisinger, 2010)
+\begin{itemize}
+	\item start with a feasible solution $x$.
+	\item \textbf{repeat}
+	\begin{itemize}
+		\item ``Destroy'' the solution $x$ (perturb the solution, until it is infeasible).
+		\item ``Rebuild'' the infeasible solution back to a feasible solution $x'$.
+		\item Check if $x'$ is better than $x$. If it is, update $x=x'$
+	\end{itemize}
+\item \textbf{until} stop criterion is met
+\item \textbf{return }$x$
+\end{itemize}
+In our case, destroying the solution is upgrading the grid slightly above budget, and repairing the solution is giving up on some upgrades to converge back to budget.
+\end{frame}
 % cascade tree illustration for more complex cases
 % the lazy constraints algorithm
 
-\section{Preliminary Results}
-\subsection{}
+\section{Results}
 \begin{frame}
-\frametitle{Preliminary results}
-%\framesubtitle{Can this method converge in a resonable time frame? Depends.}
+\frametitle{Results}
+\framesubtitle{Experiment based on four IEEE grids (30, 57, 118, and 300 nodes).}
 \footnotesize
-Simple experiment
-\begin{itemize}
-	\item IEEE-30 nodes test feeder (single generator with 29 consumers)
-	\item Total of 56 edges (41 existing for upgrade + 15 new for establishment)
-	\item Total of 5 scenarios: 280 scenario failure variables (5*56)
-\end{itemize}
-\begin{table}
-\centering
-\begin{tabular}{cccc}\toprule
-Capacity & DVar & Optimality & \\
-parameter & priorities & gap & Time\\ \toprule
-5.0 & - & 7.93\% & time limit\\
-5.0 & V & 6.82\% & time limit\\
-7.5 & V & Optimal & 19.1 s\\
-10.0 & V & Optimal & 5.5 s\\\bottomrule
+\includegraphics[width=0.7\textwidth]{Aux_files/12hour_instance_results.pdf}
+\end{frame}
+\begin{frame}
+\frametitle{Results (2)}
+\begin{table}%
+\center
+\begin{tabular}{lccccc}
+ & \multicolumn{4}{c}{Percent Supplied Average [\%]} & Overall\\
+Algorithm & IEEE30 & IEEE57 & IEEE118 & IEEE300 & Average [\%]\\ \toprule
+Lazy Constraints & 98.8 & 95.9 & 92.1 & 60.8 & 86.9\\ \midrule
+LNS Heuristic & 98.0 & 92.1 & 89.0 & 94.2 & 93.3\\ \midrule
+1-depth Approximation & 98.5 & 86.1 & 65.8 & 85.8 & 84.1 \\ \bottomrule
 \end{tabular}
+\caption{Optimization results. Three algorithms are compared: the lazy constraint algorithm, the large neighborhood search heuristic, and the 1-depth approximation algorithm. Results are reported as average percent supplied of total demand.}
+\label{tab:results_algo_compare}
 \end{table}
-%\begin{figure}[h]
-%	\centering
-%		\includegraphics[width=1\textwidth]{Aux_files/figure_6_opt_gap.pdf}
-%	\label{fig:figure_6_opt_gap}
-%\end{figure}
-\begin{itemize}
-	\item The real optimality gap may be much smaller $\rightarrow$ need to develop an upper bound separately
-\end{itemize}
 \end{frame}
 
-%\begin{frame}
-%\frametitle{Preliminary results}
-%\framesubtitle{Can this method converge in a resonable time frame? Depends.}\footnotesize
-%
-%In the ``hard'' cases, a significant portion of the time is spent on simulations, not on branching\\
-%
-%\vspace{0.1in}
-%
-%\begin{figure}[h]
-	%\centering
-		%\includegraphics[width=1\textwidth]{Aux_files/figure_7_time_simulating.pdf}
-	%\label{fig:figure_7_time_sim}
-%\end{figure}
-%\end{frame}
-
-% Mostly talk about tractability - can this problem be solved? how does it depend on parametrization.
 
 \section{Conclusions}
 \subsection{Conclusions}
