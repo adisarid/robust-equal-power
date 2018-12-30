@@ -37,7 +37,7 @@
 
 % *** Presentation to seminar (2018+) ***
 
-\title[Robustness and Equity in Power Grid Planning]{Robustness and Equity in Power Grid Expansion Planning}
+\title[Robustness in Power Grid Planning]{Robustness in Power Grid Expansion Planning}
 \author[Sarid, Tzur]{Adi Sarid, Michal Tzur}
 \institute[Tel-Aviv University]{\normalsize Department of Industrial Engineering, Tel-Aviv University, Israel}
 \date{December 31st, 2018}
@@ -151,7 +151,7 @@
 \frametitle{The Flow Equations}\footnotesize
 The DC load flow equations:
 \begin{align*}
-	\sum_j{f_{ij}} = d_i & \quad\forall i\in\mathcal{N}, \{i,j\}\in\mathcal{L}\\
+	\sum_j{f_{ji}} = d_i & \quad\forall i\in\mathcal{N}, \{i,j\}\in\mathcal{L}\\
 	\theta_i-\theta_j-x_{ij}f_{ij}=0 & \quad\forall \{i,j\}\in\mathcal{L}
 \end{align*}
 Flow preservation + Active power (phase angle constraints), where:
@@ -335,12 +335,17 @@ The optimal solution is ``physically consistent'', i.e.:
 \item The flow at $t=1$ ($f_{ij}^{1,s}$) is equal to the DC load flow solution for a power grid at step $t=1$;
 \item The objective value (unsatisfied demand at step $t=2$) is equal to the unsatisfied demand which a DC load flow model yields (after the cascade)
 \end{enumerate}
-\end{block}\pause
+\end{block}\pause\tiny
+Proof sketch
+\begin{itemize}
+	\item For $t=1$ the result is trivial thanks to the uniqueness of the DC load flow solution.
+	\item For $t=2$, this is a bit trickier. We don't prove that the flow itself is consistent (it doesn't have to be), just that the objective is. This is done by contradiction.
+\end{itemize}\pause
 What happens when we cannot guarantee a single cascade depth? 
 \begin{itemize}
 	\item Approach fails when trying a ``straightforward'' generalization
 	\item The additional degrees of freedom (of generation variables) gives a solution which is not ``physically consistent''
-	\item Can be used with transmission line capacities as an approximation -- but how good would that approximation be?
+	\item Can be used with transmission line capacities as an approximation -- but how good would that approximation be? we'll see in a few slides.
 \end{itemize}
 \end{frame}
 
@@ -396,16 +401,25 @@ In our case, destroying the solution is upgrading the grid slightly above budget
 % the lazy constraints algorithm
 
 \section{Results}
+\subsection{Percent supplied}
 \begin{frame}
-\frametitle{Results}
+\frametitle{Results -- percent supplied per instance}
 \framesubtitle{Experiment based on four IEEE grids (30, 57, 118, and 300 nodes).}
-\footnotesize
-\includegraphics[width=0.7\textwidth]{Aux_files/12hour_instance_results.pdf}
+\tiny
+\begin{itemize}
+	\item Two possible budgets ($30\%$ and $50\%$ of max expanse).
+	\item Two initial capacity settings ($5\%$ and $20\%$ above nominal flow).
+\end{itemize}
+\begin{figure}
+\centering
+\includegraphics[width=0.8\textwidth]{Aux_files/12hour_instance_results.pdf}
+\end{figure}
 \end{frame}
 \begin{frame}
-\frametitle{Results (2)}
+\frametitle{Results (2) -- average percent supplied}
 \begin{table}%
 \center
+\scriptsize
 \begin{tabular}{lccccc}
  & \multicolumn{4}{c}{Percent Supplied Average [\%]} & Overall\\
 Algorithm & IEEE30 & IEEE57 & IEEE118 & IEEE300 & Average [\%]\\ \toprule
@@ -413,8 +427,6 @@ Lazy Constraints & 98.8 & 95.9 & 92.1 & 60.8 & 86.9\\ \midrule
 LNS Heuristic & 98.0 & 92.1 & 89.0 & 94.2 & 93.3\\ \midrule
 1-depth Approximation & 98.5 & 86.1 & 65.8 & 85.8 & 84.1 \\ \bottomrule
 \end{tabular}
-\caption{Optimization results. Three algorithms are compared: the lazy constraint algorithm, the large neighborhood search heuristic, and the 1-depth approximation algorithm. Results are reported as average percent supplied of total demand.}
-\label{tab:results_algo_compare}
 \end{table}
 \end{frame}
 
@@ -423,13 +435,19 @@ LNS Heuristic & 98.0 & 92.1 & 89.0 & 94.2 & 93.3\\ \midrule
 \subsection{Conclusions}
 \begin{frame}
 \frametitle{Conclusions}
-\framesubtitle{This method still needs some ``pondering''}
 \begin{itemize}
-  \item A new method to combine investment decisions with the cascade phenomena
-	\item It takes long to prove/close the optimality gap
-	\item Needs an upper bound generation strategy
-	\item Failure variables ($F$) introduce a challenge (more scenarios increase the complexity significantly)
-	\item Customize the branching process further
+  \item A framework for defining the depth of cascade behaviour in power grids
+	\item A characterization of power grids with 1-depth cascade
+	\item Expected supplied power as a measure for quantifying robustness
+	\item Three robustness optimization algorithms
+	\begin{itemize}
+		\item LNS Heuristic
+		\item 1-depth approximation
+		\item Lazy constraints
+	\end{itemize}
+	\item Performance vary, depending on instance type, but 1-depth tends to under perform, LNS seems to yield very good solution in most cases.
+	A new method to combine investment decisions with the cascade phenomena
+	\item Further research: generalize the 1-depth characterization, improve tractability of lazy constraint method, tighter upper bounds on solutions.
 \end{itemize}
 \end{frame}
 
