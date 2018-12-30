@@ -335,19 +335,40 @@ The optimal solution is ``physically consistent'', i.e.:
 \item The flow at $t=1$ ($f_{ij}^{1,s}$) is equal to the DC load flow solution for a power grid at step $t=1$;
 \item The objective value (unsatisfied demand at step $t=2$) is equal to the unsatisfied demand which a DC load flow model yields (after the cascade)
 \end{enumerate}
-\end{block}\pause\tiny
+\end{block}\pause\small
 Proof sketch
 \begin{itemize}
 	\item For $t=1$ the result is trivial thanks to the uniqueness of the DC load flow solution.
 	\item For $t=2$, this is a bit trickier. We don't prove that the flow itself is consistent (it doesn't have to be), just that the objective is. This is done by contradiction.
-\end{itemize}\pause
-What happens when we cannot guarantee a single cascade depth? 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Characterization of grids with 1-depth cascades}
+\begin{block}{Theorem 2. A sufficient condition for up to 1-depth cascades}
+Let $s$ be a failure scenario. Let the path $p_1$ lead from a generator $G$ to a node $i$, and assume $p_1$ includes an edge which fails in scenario $s$. 
+
+Let $p_2$ be another path to $i$ from any generator $G'$ (which survives the initial failure of $s$), and $j\in p_2$ (a node on $p_2$). 
+
+Then, if there is no alternative path to $j$ other than the subset of $p_2$, the failure by scenario $s$ will not lead to more than 1 cascade step.\pause
+\end{block}
+This characterization can be easily illustrated \textcolor{red}{(the red arrow should not exist)}:
+\begin{figure}%
+\centering
+\includegraphics[width=0.4\textwidth]{Aux_files/characterization.png}
+\end{figure}
+What happens when we cannot guarantee a single cascade depth?
+\end{frame}
+
+\begin{frame}
+\frametitle{What happens when we cannot guarantee a single cascade depth?}
 \begin{itemize}
-	\item Approach fails when trying a ``straightforward'' generalization
-	\item The additional degrees of freedom (of generation variables) gives a solution which is not ``physically consistent''
+	\item Approach fails when trying a ``straightforward'' generalization of the optimization problem.
+	\item The additional degrees of freedom (of generation variables) gives a solution which is not ``physically consistent''.
 	\item Can be used with transmission line capacities as an approximation -- but how good would that approximation be? we'll see in a few slides.
 \end{itemize}
 \end{frame}
+
 
 \begin{frame}
 \frametitle{Second Approach ``Cascade Trees''}
@@ -359,6 +380,7 @@ If we could ``preprocess'' the solution tree and resulting cascades at each node
 \end{figure}
 Unfortunately, such preprocessing is too complex (too many options), but this can be generated \textbf{``on-the-fly''} using a \textbf{cutting plane} ``lazy'' constraints framework.
 \end{frame}
+
 
 \begin{frame}
 \frametitle{Algorithm for an n-Cascade Depth Design Problem}
