@@ -30,6 +30,7 @@
 \usepackage{multirow}
 \usepackage{subfig}
 \usepackage{booktabs}
+\usepackage{lmodern}% http://ctan.org/pkg/lm
 
 \definecolor{adired}{rgb}{0.83, 0.00, 0.00}
 \definecolor{adiblue}{rgb}{0.19, 0.361, 0.769}
@@ -264,11 +265,11 @@ Minimum expected loss of load:
 \footnotesize
 Variable domain:
 \begin{align*}
-	 \forall i,j\in\mathcal{N}, t\in\{1,2\}, s\in\mathcal{S}:\label{variable_domain}\\
-	 g_i^s, w_i^{t,s}, c_{ij}^l, c_i^g\geq0\notag\\
-	 F_{ij}^s, Z_i\in\{0,1\}\notag\\
+	 \forall i,j\in\mathcal{N}, t\in\{1,2\}, s\in\mathcal{S}:\\
+	 g_i^s, w_i^{t,s}, c_{ij}^l, c_i^g\geq0\\
+	 F_{ij}^s, Z_i\in\{0,1\}\\
 	 \forall (i,j)\in\mathcal{L}^e:\\
-	 X_{ij} \in\{0,1\}\notag
+	 X_{ij} \in\{0,1\}
 \end{align*}
 Investment cost constraint (budget):
 \begin{align*}
@@ -458,22 +459,24 @@ LNS Heuristic & 98.0 & 92.1 & 89.0 & 94.2 & 93.3\\ \midrule
 \begin{frame}
 \frametitle{Conclusions}
 \begin{itemize}
-  \item A framework for defining the depth of cascade behaviour in power grids
-	\item A characterization of power grids with 1-depth cascade
-	\item Expected supplied power as a measure for quantifying robustness
-	\item Three robustness optimization algorithms
+	\item A characterization of power grids with 1-depth cascade.\pause
+	\item Expected supplied power as a measure for quantifying robustness.\pause
+	\item A new method to combine investment decisions with the cascade phenomena. Three robustness optimization algorithms:
 	\begin{itemize}
-		\item LNS Heuristic
-		\item 1-depth approximation
-		\item Lazy constraints
-	\end{itemize}
-	\item Performance vary, depending on instance type, but 1-depth tends to under perform, LNS seems to yield very good solution in most cases.
-	A new method to combine investment decisions with the cascade phenomena
-	\item Further research: generalize the 1-depth characterization, improve tractability of lazy constraint method, tighter upper bounds on solutions.
+		\item LNS Heuristic.
+		\item 1-depth approximation.
+		\item Lazy constraints.
+	\end{itemize}\pause
+	\item Performance vary, depending on instance type, but 1-depth tends to under perform, LNS seems to yield very good solution in most cases.\pause
+	\item Further research: generalize the 1-depth characterization, improve tractability of lazy constraint method, tighter upper bounds on solutions.\pause
+\end{itemize}
+How about ``timely'' considerations? (year + daily variations)
+\begin{itemize}
+	\item Sarid, A., and Tzur, M., ``The multi-scale generation and transmission expansion model.'', \emph{Energy}, 148 (2018): 977-991.
 \end{itemize}
 \end{frame}
 
-\subsection{Get in Touch}
+\subsubsection{Get in Touch}
 \begin{frame}
 \LARGE Thank you\\
 \vspace{2.5cm}
@@ -481,4 +484,194 @@ LNS Heuristic & 98.0 & 92.1 & 89.0 & 94.2 & 93.3\\ \midrule
 Adi Sarid\\
 adisarid@gmail.com
 \end{frame}
+
+\section{Multiscale}
+\begin{frame}
+\frametitle{The ``intricacies'' of time}
+So far we haven't treated the intricacies of time:
+\begin{itemize}
+	\item How to perform the expansion plan over time (years).
+	\item How to consider the different times of days (and seasons).
+\end{itemize}
+\centering
+\includegraphics<1>[width=0.5\textwidth]{Aux_files/demand_private.png}
+\includegraphics<2>[width=0.5\textwidth]{Aux_files/ev_naive.png}
+\includegraphics<3>[width=0.5\textwidth]{Aux_files/smart.png}
+\includegraphics<4>[width=0.5\textwidth]{Aux_files/dg.png}
+\end{frame}
+
+\begin{frame}
+\frametitle{Multiscale model} % Fix here to have a title...
+\centering
+\vspace{-0.25in}\includegraphics[width=.3\textwidth]{Aux_files/figure_1_Electricity_grid_simple_North_America.png}\vspace{0.1in}\\
+%\flushleft
+\tiny
+\begin{tabular}{lp{2.5cm}p{2.5cm}p{2cm}}
+					& \textcolor{adired}{Generation facilities} & \textcolor{adiblue}{Transmission} & \textcolor{adigreen}{Consumers}\\
+            		& \textcolor{adired}{(power stations)} & \textcolor{adiblue}{(substations and lines)} & \textcolor{adigreen}{(distribution)}\\\toprule\pause
+Establish/upgrade 	& Main generation facilities' capacity (when and where)  & Substation capacity and transmission lines (when and where) & - \\\midrule\pause
+Flow problem		& Generation of electricity				& Flow equations & Satisfy demand\\\midrule\pause
+Integer variables	& $Z^y_i(m)$ & $Z^y_i(m)$, $X_{ij}^y(m)$ & - \\
+					& $U_i^y(m_1,m_2)$ & $U_i^y(m_1,m_2)$, $R^y_{ij}(m_1,m_2)$ & -\\\midrule\pause
+Continuous variables & $W_{it}^y$ & $Y^y_{ijt}$ & $W_{it}^y$ \quad (DG) \\\midrule\pause
+                    & Parameters: & & \\\midrule
+Processing capacity & - & $p_i(m)$, $l_{ij}(m)$ & demand $d_{it}^y$\\\midrule\pause
+Generation capacity & $k_{it}(m)$ & - & $k_{it}$ \\
+		            & & & $w_{it}$ (unavoidable output) \\\midrule\pause
+Installation costs  & $f_i^y(m_1,m_2)$ & $f_i^y(m_1,m_2)$, $c_{ij}^y(m_1,m_2)$ & -\\\bottomrule
+\end{tabular}\pause
+\flushleft
+Additional parameters: $h_{it}$ generation cost, $\tau_t$ length of time interval $t$, $\delta_{ij}, \gamma_i$ energy loss coefficients
+\end{frame}
+
+\begin{frame}
+\frametitle{The objective}	
+Minimize overall costs of installations, upgrades and operating:\scriptsize
+\begin{align}
+\min{\sum_{y\in\mathcal{Y}}\left(\sum_{i\in\NN}{\sum_{m_1<m_2}f_i^y(m_1,m_2)U_i^y(m_1,m_2)} + \sum_{(i,j)\in\mathcal{L}}\sum_{m_1<m_2}c_{ij}^y(m_1,m_2)R^y_{ij}(m_1,m_2) \right)\notag}\\
++ \sum_{y\in\mathcal{Y}}\sum_{i\in\NN_g}\sum_{t\in\mathcal{T}}\tau_th_{it}^yW_{it}^y\label{FND:objective}
+\end{align}
+\end{frame}
+
+\begin{frame}
+% * <adisarid@gmail.com> 2016-05-04T07:06:41.313Z:
+%
+% Skip ahead here, by saying most are standard constraints.
+%
+% ^.
+\small Conservation of flow: \tiny
+\begin{align}
+& \sum_{j\in\NN}{Y^y_{jit}} - d^y_{it} + W^y_{it} = \sum_{j\in\NN}Y^y_{ijt} & \label{FND:flow} \forall i\in\NN, t\in\mathcal{T}, y\in\mathcal{Y}\\
+& \sum_{j\in\NN_{sg}}{Y^y_{jit}} + W^y_{it} \geq \sum_{j\in\NN_{sg}}Y^y_{ijt} & \label{FND:high_volt} \forall i\in\NN_{sg}, t\in\mathcal{T}, y\in\mathcal{Y}
+\end{align}
+% {\color{red}\begin{align}
+% \theta_{jty}^y-\theta_{ity}^y-x_{ji}(m)Y^y_{jit}=0 & \hspace{1in}\qquad\label{FND:voltage} \forall i,j\in\NN, t\in\mathcal{T}, y\in\mathcal{Y}
+% \end{align}}
+\small Processing capacity: \tiny
+\begin{align}
+	 & \sum_{\{i,j\}\notin\NN_{sg}}{Y^y_{ijt}} \leq \sum_{m=1}^{M_i}p_i(m)Z^y_i(m), & \label{FND:process_capacity} \forall i\in\NN, t\in\mathcal{T}, y\in\mathcal{Y}
+\end{align}
+\small Manufacturing capacity: \tiny
+\begin{align}
+	 & W^y_{it}\leq \sum_{m=1}^{M_i}{k_{it}(m)Z^y_i(m)}, \label{FND:establish_facility} &\forall i\in\NN_g, t\in\mathcal{T}, y\in\mathcal{Y}\\
+	 & W^y_{it}\geq \sum_{m=1}^{M_i}{w_{it}(m)Z^y_i(m)}, \label{FND:min_generation} &\forall i\in\NN_g, t\in\mathcal{T}, y\in\mathcal{Y}
+\end{align}
+
+\end{frame}
+
+\begin{frame}
+	\scriptsize 	Link's flow capacity: \tiny
+\begin{align}
+	 & Y^y_{ijt}\leq \sum_{m=0}^{M_{ij}}{l_{ij}(m)X^y_{ij}(m)}, \label{FND:link_installed} &\forall (i,j)\in\mathcal{L}, t\in\mathcal{T}, y\in\mathcal{Y}
+\end{align}
+\scriptsize Substation's capacity state and upgrade: \tiny
+\begin{align}
+	& \sum_{m=0}^{M_i}{Z_i^y(m)}=1, \label{FND:certain_level} &\forall i\in \NN, y\in\mathcal{Y}\\
+	& \sum_{m=1}^{M_i}mZ_i^y(m)=\sum_{m=1}^{M_i}mZ_i^{y-1}(m)+\sum_{m_1<m_2}(m_2-m_1)U_i^y(m_1,m_2), & \notag\\
+	&  \label{FND:node_upgrade} & \forall i\in\NN, y\in\mathcal{Y}
+\end{align}
+
+\scriptsize Upgrade of nodes definition: \tiny
+\begin{align}
+  & \sum_{m_2: m_2>m_1}U_i^y(m_1,m_2)\leq Z_i^{y-1}(m_1), \label{FND:upgrade_mat} & \forall i \in\NN, y\in\mathcal{Y}, 0\leq m_1<M_i
+\end{align}
+	
+\end{frame}
+
+\begin{frame}
+\scriptsize Establishment and upgrade of transmission lines: \tiny
+\begin{align}
+	\sum_{m=1}^{M_{ij}}X_{ij}^y(m)\leq 1-Z^y_i(0) \label{FND:link_then_facility}, & \hspace{2in}\forall (i,j)\in\mathcal{L}, i\in \NN_g, y\in\mathcal{Y} %\symbol{92}\mathcal{L}_s
+\end{align}
+
+\begin{align}
+	& \sum_{m=1}^{M_{ij}}mX_{ij}^y(m)=\sum_{m=1}^{M_{ij}}mX_{ij}^{y-1}(m)+\sum_{m_1<m_2}(m_2-m_1)R_{ij}^y(m_1,m_2), & \notag \\
+	& \hspace{2.9in} \forall (i,j)\in\mathcal{L}, i\in\NN, y\in\mathcal{Y} \label{FND:link_up} &
+\end{align}
+\begin{align}
+  & \sum_{m_2: m_2>m_1}R_{ij}^y(m_1,m_2)\leq X_{ij}^{y-1}(m_1), & \notag\\
+	& \hspace{1.9in} \forall (i,j)\in\mathcal{L}, i \in\NN, y\in\mathcal{Y}, 0\leq m_1<M_{ij} \label{FND:link_up2} & 
+\end{align}
+\begin{align}
+  %& {\sum_{m_1<m_2}{R_{ij}^y(m_1,m_2)}}\leq 1, \label{FND:upgrade_once} & \forall (i,j)\in\mathcal{L}, i\in\NN, y\in\mathcal{Y}\\ % redundant due to next constraint
+	& X^y_{ij} = X^y_{ji} , \label{FND:edge_symm} &\forall (i,j)\in\mathcal{L}, y\in\mathcal{Y} %\symbol{92}\mathcal{L}_s
+\end{align}
+\end{frame}
+
+\begin{frame}
+\small Decision variables' range: \tiny
+\begin{align}
+	 & Z^y_i(m) \in \{0,1\}, \label{FND:Z_int} &\forall i\in\NN, y\in\mathcal{Y}\\
+	 & X^y_{ij}(m) \in \{0,1\}, &\forall (i,j)\in\mathcal{L}, i\in\NN, y\in\mathcal{Y}\\
+	 & U_i^y(m_1, m_2)\in\{0,1\}, & \forall i\in\NN, y\in\mathcal{Y}\\
+	 & R_{ij}^y(m_1, m_2)\in\{0,1\}, & \forall (i,j)\in\mathcal{L}, y\in\mathcal{Y}\\
+	 & Y^y_{ijt}\geq0, &\forall (i,j)\in\mathcal{L}, t\in\mathcal{T}, y\in\mathcal{Y}\\
+	 & W^y_{ijt}\geq0, \label{FND:W_pos} &\forall (i,j)\in\mathcal{L}, t\in\mathcal{T}, y\in\mathcal{Y}
+\end{align}
+
+\quad \\ \quad \\ \small
+\onslide<2>{The addition of energy loss requires modification of the objective function and some of the earlier constraints.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Numerical experiments -- Small instances (33 nodes)}
+\framesubtitle{Distributed generation}
+\begin{table}[htbp]
+\tiny
+  \centering
+	\begin{tabular}{l|l|c|c|c|c|c|c}
+    \hline
+    & &       & \textbf{Substation} & \textbf{Line} & \textbf{Gen. facilities} & \textbf{Total} & \textbf{Gen.} \\
+    \# & \textbf{Name} & \textbf{Obj.} & \textbf{Costs} & \textbf{Costs} & \textbf{Costs} & \textbf{Invest.} & \textbf{Costs} \\ \hline
+    1 & \textbf{Base} & 350.2 & 25    & 47.09 & 165   & 237.1 & 113.1 \\ \hline
+    2 & \textbf{DG 5\%} & 327.3 & 25    & 43.38 & 165   & 233.4 & 93.94 \\
+    3 & \textbf{DG 10\%} & 308.1 & 25    & 43.38 & 165   & 233.4 & 74.73 \\
+    \hline
+    \end{tabular}%
+    %\label{tab:ResSmallInstances}%
+	%\caption{Comparison of small instances (33 nodes)}
+\end{table}%
+\normalsize
+\begin{block}{Interesting observations}
+\onslide<2->{Introduction of 5-10\% DG nodes ($\sim$17-34\% production by DG) yielded similar infrastructure investments -- same facilities, decreased line investments\\}
+\onslide<3->{Total costs decreased by $\sim$7-12\%\\}
+\onslide<4->{No feasible solution above 10\% DG nodes -- excess quantity above transmission capacity + not enough neighborhood demand}
+\end{block}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Numerical experiments -- Small instances (33 nodes)}
+\framesubtitle{Electric vehicles}
+\begin{table}[htbp]
+\tiny
+  \centering
+	\begin{tabular}{l|l|c|c|c|c|c|c}
+    \hline
+    & &       & \textbf{Substation} & \textbf{Line} & \textbf{Gen. facilities} & \textbf{Total} & \textbf{Gen.} \\
+    \# & \textbf{Name} & \textbf{Obj.} & \textbf{Costs} & \textbf{Costs} & \textbf{Costs} & \textbf{Invest.} & \textbf{Costs} \\ \hline
+    1 & \textbf{Base} & 350.2 & 25    & 47.09 & 165   & 237.1 & 113.1 \\ \hline
+    \textcolor<2>{orange}{4} & \textbf{EV sm40\%} & 364.5 & 25    & 47.09 & 165   & 237.1 & 127.4 \\
+    \textcolor<3>{orange}{5} & \textbf{EV na\"{i}10\% + sm40\%} & 392.1 & 25    & 51.14 & 185 & 261.1 & 131 \\ \hline
+    \textcolor<3>{orange}{6} & \textbf{EV na\"{i}-sl10\%} & 358.1 & 29 & 47.43 & 165   & 241.4 & 116.6 \\
+    \textcolor<3>{orange}{7} & \textbf{EV na\"{i}-sl20\%} & 382.1 & 25    & 51.86 & 185 & 261.9 & 120.3 \\
+    \textcolor<3>{orange}{8} & \textbf{EV na\"{i}-sl10\%+sm40\%} & 372.3 & 29 & 47.43 & 165   & 241.4 & 130.9 \\
+    \textcolor<3>{orange}{9} & \textbf{EV na\"{i}-sl20\%+sm40\%} & 396.4 & 25    & 51.86 & 185 & 261.9 & 134.6 \\ \hline
+    \textcolor<2>{orange}{10} & \textbf{EV sm-noon10\%} & 353.8 & 25    & 47.1  & 165   & 237.1 & 116.7 \\
+    \textcolor<2>{orange}{11} & \textbf{EV sm-noon30\%} & 365.6 & 29 & 47.68 & 165   & 241.7 & 123.9 \\
+    \textcolor<2>{orange}{12} & \textbf{EV sm-noon50\%} & 398.8 & 29 & 53.87 & 185 & 267.9 & 130.9 \\
+    \hline
+    \end{tabular}%
+  %\label{tab:ResSmallInstances}%
+	%\caption{Comparison of small instances (33 nodes)}
+\end{table}%
+\footnotesize
+\begin{block}{Interesting observations}
+\onslide<2->{Smart consumers -- didn't affect much on the infrastructure\\}
+\onslide<3->{Na\"ive consumers -- depending on penetration level, required more infrastructure investments\\}
+\onslide<4->{Max EV penetration level depends on demand patterns\\(smart - up to 80\% versus na\"ive up to 10\%)}
+\end{block}
+\end{frame}
+
 \end{document}
+
